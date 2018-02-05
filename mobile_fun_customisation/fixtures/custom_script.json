@@ -1,0 +1,74 @@
+[
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Batch Process", 
+  "modified": "2018-01-26 10:53:41.354356", 
+  "name": "Batch Process-Client", 
+  "script": "frappe.ui.form.on(\"Batch Process\", \"refresh\", function(frm) {\n    cur_frm.add_custom_button(__(\"Submit Batch\"), function() {\n\n\tfrappe.call ({\n\t    \"method\": \"mobile_fun_customisation.controllers.batch_process.submit_documents\",\n\t    \"args\": {\n\t\t\"doc\": cur_frm.doc\n\t    }\n        });\n    });\n});\n", 
+  "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Purchase Order", 
+  "modified": "2018-01-17 14:34:59.446466", 
+  "name": "Purchase Order-Client", 
+  "script": "frappe.ui.form.on(\"Purchase Order\", \"validate\", function(frm) {\n\n    var dateStart = moment(frappe.defaults.get_user_default(\"year_start_date\"));\n    var dateEnd = moment(frappe.defaults.get_user_default(\"year_end_date\"));\n    var timeValues = [];\n    var today = moment(cur_frm.transaction_date).format(\"YYYY-MM\");\n\n    while (dateEnd > dateStart) {\n        timeValues.push(dateStart.format(\"YYYY-MM\"));\n        dateStart.add(1, \"month\");\n    }\n\n    for (i = 0; i < timeValues.length; i++) {\n        function rowGen(i) {\n            var pur = frappe.call({\n                method: \"frappe.client.get_value\",\n                args: {\n                    \"doctype\": \"Fiscal Period\",\n                    \"filters\": {\n                        \"name\": timeValues[i]\n                    },\n                    \"fieldname\": [\n                        \"purchasing\"\n                    ]\n                },\n                callback: function(r) {\n                    pur = (r.message.purchasing);\n                    if (today === timeValues[i] && pur === 1) {\n                        frappe.msgprint(\"The fiscal period you are trying to post into is closed for purchasing entries\");\n                        frappe.validated = false;\n                    }\n                }\n            })\n        }\n        rowGen(i);\n    }\n});\n\nfrappe.ui.form.on(\"Purchase Order\", \"refresh\", function(frm) {\n    cur_frm.set_query(\"batch_id\", function() {\n        return {\n            \"filters\": {\n                \"batch_type\": cur_frm.doctype\n            }\n        };\n    });\n});\n\nfrappe.ui.form.on('Purchase Order', 'supplier', function(frm, cdt, cdn){\n    frappe.call({\n        'method': 'frappe.client.get_value',\n        'args': {\n            'doctype': 'Supplier',\n\t    'fieldname': 'creditor_id',\n            'filters': {\n                'supplier_name': locals[cdt][cdn].supplier\n            }\n        },\n        'callback': function(res){\n            frappe.model.set_value(cdt, cdn, 'creditor_id', res.message.creditor_id);\n        }\n    });\n});", 
+  "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Fiscal Period Status", 
+  "modified": "2017-12-21 12:02:59.393325", 
+  "name": "Fiscal Period Status-Client", 
+  "script": "frappe.ui.form.on(\"Fiscal Period Status\", {\n    fiscal_year: function(frm) {\n        var dateStart = moment(frappe.defaults.get_user_default(\"year_start_date\"));\n        var dateEnd = moment(frappe.defaults.get_user_default(\"year_end_date\"));\n        var timeValues = [];\n\n        while (dateEnd > dateStart) {\n            timeValues.push(dateStart.format(\"YYYY-MM\"));\n            dateStart.add(1, \"month\");\n        }\n\n        for (i = 0; i < timeValues.length; i++) {\n            var new_row = cur_frm.add_child(\"fiscal_period\");\n            new_row.fiscal_period = timeValues[i];\n\t    new_row.purchasing = 1;\n\t    new_row.sales = 1;\n\t    new_row.financial = 1;\n        }\n    }\n});", 
+  "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Purchase Invoice", 
+  "modified": "2018-01-17 14:35:24.140525", 
+  "name": "Purchase Invoice-Client", 
+  "script": "frappe.ui.form.on(\"Purchase Invoice\", \"refresh\", function(frm) {\n    cur_frm.set_query(\"batch_id\", function() {\n        return {\n            \"filters\": {\n                \"batch_type\": cur_frm.doctype\n            }\n        };\n    });\n});\n\nfrappe.ui.form.on('Purchase Invoice', 'supplier', function(frm, cdt, cdn){\n    frappe.call({\n        'method': 'frappe.client.get_value',\n        'args': {\n            'doctype': 'Supplier',\n\t    'fieldname': 'creditor_id',\n            'filters': {\n                'supplier_name': locals[cdt][cdn].supplier\n            }\n        },\n        'callback': function(res){\n            frappe.model.set_value(cdt, cdn, 'creditor_id', res.message.creditor_id);\n        }\n    });\n});", 
+  "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Journal Entry", 
+  "modified": "2018-01-17 11:25:52.551832", 
+  "name": "Journal Entry-Client", 
+  "script": "frappe.ui.form.on(\"Journal Entry\", \"refresh\", function(frm) {\n    cur_frm.set_query(\"batch_id\", function() {\n        return {\n            \"filters\": {\n                \"batch_type\": cur_frm.doctype\n            }\n        };\n    });\n});", 
+  "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Purchase Receipt", 
+  "modified": "2018-01-25 11:07:16.690434", 
+  "name": "Purchase Receipt-Client", 
+  "script": "frappe.ui.form.on('Purchase Receipt', 'supplier', function(frm, cdt, cdn){\n    frappe.call({\n        'method': 'frappe.client.get_value',\n        'args': {\n            'doctype': 'Supplier',\n\t    'fieldname': 'creditor_id',\n            'filters': {\n                'supplier_name': locals[cdt][cdn].supplier\n            }\n        },\n        'callback': function(res){\n            frappe.model.set_value(cdt, cdn, 'creditor_id', res.message.creditor_id);\n        }\n    });\n});", 
+  "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Sales Invoice", 
+  "modified": "2018-01-29 12:16:39.570905", 
+  "name": "Sales Invoice-Client", 
+  "script": "frappe.ui.form.on('Sales Invoice', 'customer', function(frm, cdt, cdn){\n    frappe.call({\n        'method': 'frappe.client.get_value',\n        'args': {\n            'doctype': 'Customer',\n\t    'fieldname': 'debtor_id',\n            'filters': {\n                'customer_name': locals[cdt][cdn].customer\n            }\n        },\n        'callback': function(res){\n            frappe.model.set_value(cdt, cdn, 'debtor_id', res.message.debtor_id);\n        }\n    });\n});\n\nfrappe.ui.form.on(\"Sales Invoice\", \"refresh\", function(frm) {\n    cur_frm.set_query(\"batch_id\", function() {\n        return {\n            \"filters\": {\n                \"batch_type\": cur_frm.doctype\n            }\n        };\n    });\n});", 
+  "script_type": "Client"
+ }, 
+ {
+  "docstatus": 0, 
+  "doctype": "Custom Script", 
+  "dt": "Sales Order", 
+  "modified": "2018-01-25 12:26:00.214034", 
+  "name": "Sales Order-Client", 
+  "script": "frappe.ui.form.on('Sales Order', 'customer', function(frm, cdt, cdn){\n    frappe.call({\n        'method': 'frappe.client.get_value',\n        'args': {\n            'doctype': 'Customer',\n\t    'fieldname': 'debtor_id',\n            'filters': {\n                'customer_name': locals[cdt][cdn].customer\n            }\n        },\n        'callback': function(res){\n            frappe.model.set_value(cdt, cdn, 'debtor_id', res.message.debtor_id);\n        }\n    });\n});", 
+  "script_type": "Client"
+ }
+]

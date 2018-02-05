@@ -1,0 +1,31 @@
+import frappe
+
+def create_purchase_receipt(doc, method):
+	def create_purchase_receipt(doc, method):
+        PO_item = frappe.get_doc({
+                "doctype": "Purchase Receipt Item",
+                "item_code": item_name,
+                "item_name": item_name,
+                "rate": line_item["price"],
+                "amount": line_item["price"] * line_item["quantity"],
+                "qty": line_item["quantity"],
+                "warehouse": "Finished Goods - MFL",
+                "description": item_name
+        })
+
+        doc = frappe.get_doc({
+                "doctype": "Purchase Receipt",
+                "purchase_receipt": doc.name,
+                "supplier": doc.supplier,
+                "posting_date": doc.transaction_date,
+                "posting_time": "00:00:00",
+                "company": doc.company,
+                "currency": doc.currency,
+                "conversion_rate": doc.conversion_rate,
+                "items": PO_items,
+                "docstatus": 1
+        })
+
+        PO_items.append(PO_item)
+        doc.insert(ignore_permissions = True)
+
