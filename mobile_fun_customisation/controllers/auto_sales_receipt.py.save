@@ -1,0 +1,34 @@
+from __future__ import unicode_literals
+import frappe
+import frappe.defaults
+import json
+from frappe.utils import cstr, flt, cint, nowdate
+from frappe import throw, msgprint, _
+from frappe.utils import getdate
+from frappe.model.mapper import get_mapped_doc
+from erpnext.controllers.buying_controller import BuyingController
+from erpnext.stock.doctype.item.item import get_last_purchase_details
+from erpnext.stock.stock_balance import update_bin_qty, get_ordered_qty
+from frappe.desk.notifications import clear_doctype_notifications
+from erpnext.buying.utils import (validate_for_items, check_for_closed_status, update_last_purchase_rate)
+from erpnext.accounts.utils import get_account_currency
+
+form_grid_templates = {
+	"items": "templates/form_grid/item_grid.html"
+}
+
+class AutoSalesReceipt(BuyingController):
+		def __init__(self, *args, **kwargs):
+		super(PurchaseOrder, self).__init__(*args, **kwargs)
+		self.status_updater = [{
+			'source_dt': 'Purchase Order Item',
+			'target_dt': 'Material Request Item',
+			'join_field': 'material_request_item',
+			'target_field': 'ordered_qty',
+			'target_parent_dt': 'Material Request',
+			'target_parent_field': 'per_ordered',
+			'target_ref_field': 'qty',
+			'source_field': 'stock_qty',
+			'percent_join_field': 'material_request',
+			'overflow_type': 'order'
+		}]
