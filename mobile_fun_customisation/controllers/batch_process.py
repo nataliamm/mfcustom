@@ -90,3 +90,15 @@ def purchase_order_batch_update(a, b):
                 i = frappe.get_doc('Batch Process', doc)
                 j = frappe.get_doc('Batch Process', doc).as_json()
                 update_status(j)
+
+@frappe.whitelist()
+def sales_invoice_batch_update(a, b):
+        batch_list = frappe.get_list('Batch Process')
+        for doc in batch_list:
+                frappe.db.sql("""DELETE FROM `tabBatch Process Documents` WHERE batch_type = 'Sales Invoice'""")
+                frappe.db.sql("""INSERT INTO `tabBatch Process Documents` SELECT name AS name, %s AS creation, NOW() AS modified, %s AS modified_by, %s AS owner, docstatus, batch_id AS parent, 'batch_docs' AS parentfield, 'Batch Process' AS parenttype, 1 AS idx, name AS document_name, posting_date AS document_date, 'Sales Invoice' AS batch_type FROM `tabSales Invoice` WHERE docstatus = 0""", (a.creation, a.modified_by, a.owner))
+        for doc in batch_list:
+                i = frappe.get_doc('Batch Process', doc)
+                j = frappe.get_doc('Batch Process', doc).as_json()
+                update_status(j)
+
