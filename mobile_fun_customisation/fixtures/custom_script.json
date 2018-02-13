@@ -3,9 +3,9 @@
   "docstatus": 0, 
   "doctype": "Custom Script", 
   "dt": "Batch Process", 
-  "modified": "2018-01-26 10:53:41.354356", 
+  "modified": "2018-02-09 14:33:23.060413", 
   "name": "Batch Process-Client", 
-  "script": "frappe.ui.form.on(\"Batch Process\", \"refresh\", function(frm) {\n    cur_frm.add_custom_button(__(\"Submit Batch\"), function() {\n\n\tfrappe.call ({\n\t    \"method\": \"mobile_fun_customisation.controllers.batch_process.submit_documents\",\n\t    \"args\": {\n\t\t\"doc\": cur_frm.doc\n\t    }\n        });\n    });\n});\n", 
+  "script": "frappe.ui.form.on(\"Batch Process\", \"refresh\", function(frm) {\n    cur_frm.add_custom_button(__(\"Submit Batch\"), function() {\n\n\tfrappe.call ({\n\t    \"method\": \"mobile_fun_customisation.controllers.batch_process.submit_documents\",\n\t    \"args\": {\n\t\t\"doc\": cur_frm.doc\n\t    }\n        });\n    });\n});\n\nfrappe.ui.form.on(\"Batch Process\", \"refresh\", function(frm) {\n    frm.set_query(\"batch_type\", function() {\n        return {\n            filters: [\n                [\"DocType\", \"name\", \"in\", [\"Purchase Order\", \"Purchase Receipt\", \"Purchase Invoice\", \"Sales Order\", \"Sales Invoice\", \"Journal Entry\"]]\n            ]\n        }\n    })\n})", 
   "script_type": "Client"
  }, 
  {
