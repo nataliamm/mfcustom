@@ -8,7 +8,7 @@ import json
 
 
 from frappe.model.document import Document
-from frappe.utils import fmt_money
+from frappe.utils import fmt_money, today, formatdate
 from frappe import _
 
 
@@ -28,7 +28,7 @@ class CustomerStatement(Document):
                 party
             ORDER BY
                 party""", as_dict=1)
-        primary_emails={g.party:frappe.db.sql("""SELECT email_id
+        primary_emails={g.party:frappe.db.sql("""SELECT email_id, first_name, last_name
                                     FROM tabContact
                                     WHERE name LIKE %s
                                         AND is_primary_contact=1""",("%%%s%%" % g.party), as_dict=1) for g in gl_entries}
@@ -40,6 +40,7 @@ class CustomerStatement(Document):
             for g in gl_entries:
                 if g.party == i and emails:
                     g.primary_emails = emails[0].email_id
+                    g.contact_name = emails[0].first_name + " " + emails[0].last_name
         for i, emails in cc_emails.items():
             for g in gl_entries:
                 if g.party == i and emails:
@@ -55,14 +56,19 @@ class CustomerStatement(Document):
 
 
 @frappe.whitelist()
-def send_statements(checked_customers):
+def send_statements(checked_customers, sending_date):
     customers = json.loads(checked_customers)
+    sending_date = formatdate(sending_date, 'dd/MM/YYYY')
+    standard_reply = frappe.db.sql("""SELECT response
+        FROM `tabStandard Reply`
+        where name='Statement'""",as_dict=1)
     for i in customers:
         if i.get("email"):
             attachments = [frappe.attach_print("Customer", i.get("customer_name"), print_format="Customer Statement")]
+            message = standard_reply[0].response.replace("{ contact_name }", i.get("contact_name")).replace("{ statement_date }", sending_date)
             frappe.sendmail(i.get("email"),
-                subject=_("Statement"),
-                message="Test",
+                subject=_("Statement of Account for {0} as of {1}").format(i.get("customer_name"), sending_date),
+                message=message,
                 cc=i.get("cc_email") or [],
                 attachments=attachments
             )

@@ -22,6 +22,7 @@ frappe.ui.form.on('Customer Statement', {
                 customers["total_unpaid"] = customer.total_unpaid;
                 customers["email"] = customer.email;
                 customers["cc_email"] = customer.cc_email;
+                customers["contact_name"] = customer.contact_name;
             	checked_customers.push(customers)
             }
         })
@@ -29,12 +30,13 @@ frappe.ui.form.on('Customer Statement', {
 			method: "mobile_fun_customisation.mobile_fun_customisation.doctype.customer_statement.customer_statement.send_statements",
 			args: {
 				checked_customers: checked_customers,
+				sending_date: cur_frm.doc.sending_date
 			},
 			callback: function(r) {
 				if(!r.exc) {
 					msgprint("Emails have been sent")
 				}
-				frm.refresh_fields();
+				cur_frm.refresh_fields();
 			}
 		});
 	}
