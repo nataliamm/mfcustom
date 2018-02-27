@@ -21,7 +21,7 @@ def get_balance(customer):
                     THEN (SELECT posting_date FROM `tabPayment Entry` WHERE name=voucher_no)
                 WHEN (voucher_type='Journal Entry')
                     THEN (SELECT posting_date FROM `tabJournal Entry` WHERE name=voucher_no)
-                ENDend
+                END
             ) AS posting_date
         FROM `tabGL Entry`
         WHERE
@@ -37,12 +37,13 @@ def get_balance(customer):
             party
         ORDER BY
             posting_date, name""", (customer,fiscal_year), as_dict=1)
-    current_balance = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) <= 30)
-    less_sixty = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) > 31 and date_diff(today(), g.posting_date) <= 60)
-    less_ninety = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) > 61 and date_diff(today(), g.posting_date) <= 90)
-    above_ninety = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) > 91)
-    frappe.db.set_value("Customer", customer, "current", current_balance)
-    frappe.db.set_value("Customer", customer, "less_sixty", less_sixty)
-    frappe.db.set_value("Customer", customer, "less_ninety", less_ninety)
-    frappe.db.set_value("Customer", customer, "above_ninety", above_ninety)
+    if gl_entries:
+        current_balance = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) <= 30)
+        less_sixty = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) > 31 and date_diff(today(), g.posting_date) <= 60)
+        less_ninety = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) > 61 and date_diff(today(), g.posting_date) <= 90)
+        above_ninety = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) > 91)
+        frappe.db.set_value("Customer", customer, "current", current_balance)
+        frappe.db.set_value("Customer", customer, "less_sixty", less_sixty)
+        frappe.db.set_value("Customer", customer, "less_ninety", less_ninety)
+        frappe.db.set_value("Customer", customer, "above_ninety", above_ninety)
     return True

@@ -40,7 +40,10 @@ class CustomerStatement(Document):
             for g in gl_entries:
                 if g.party == i and emails:
                     g.primary_emails = emails[0].email_id
-                    g.contact_name = emails[0].first_name + " " + emails[0].last_name
+                    if emails[0].last_name:
+                        g.contact_name = emails[0].first_name + " " + emails[0].last_name
+                    else:
+                        g.contact_name = emails[0].first_name
         for i, emails in cc_emails.items():
             for g in gl_entries:
                 if g.party == i and emails:
