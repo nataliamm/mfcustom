@@ -4,8 +4,12 @@
 
 from __future__ import unicode_literals
 import frappe
+import json
+
+
 from frappe.model.document import Document
 from frappe.utils import fmt_money
+from frappe import _
 
 
 class CustomerStatement(Document):
@@ -43,8 +47,23 @@ class CustomerStatement(Document):
 
         for d in gl_entries:
             row = self.append('customers_table', {})
-            d.customer = d.party
+            d.customer_name = d.party
             d.email = d.primary_emails
             d.cc_email = d.cc_emails
             d.total_unpaid = fmt_money(d.debit - d.credit,2,"GBP")
             row.update(d)
+
+
+@frappe.whitelist()
+def send_statements(checked_customers):
+    customers = json.loads(checked_customers)
+    for i in customers:
+        if i.get("email"):
+            attachments = [frappe.attach_print("Customer", i.get("customer_name"), print_format="Customer Statement")]
+            frappe.sendmail(i.get("email"),
+                subject=_("Statement"),
+                message="Test",
+                cc=i.get("cc_email") or [],
+                attachments=attachments
+            )
+    return True

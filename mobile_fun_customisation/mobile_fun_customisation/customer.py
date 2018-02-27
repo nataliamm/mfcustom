@@ -11,31 +11,31 @@ from frappe.utils import today, date_diff
 def get_balance(customer):
     fiscal_year = frappe.db.get_single_value('Global Defaults', 'current_fiscal_year')
     gl_entries = frappe.db.sql("""
-        select name, voucher_type, voucher_no,
-            sum(debit_in_account_currency) as debit,
-            sum(credit_in_account_currency) as credit,
+        SELECT name, voucher_type, voucher_no,
+            SUM(debit_in_account_currency) AS debit,
+            SUM(credit_in_account_currency) AS credit,
             (
-                case when (voucher_type='Sales Invoice')
-                    then (select posting_date from `tabSales Invoice` where name=voucher_no)
-                when (voucher_type='Payment Entry')
-                    then (select posting_date from `tabPayment Entry` where name=voucher_no)
-                when (voucher_type='Journal Entry')
-                    then (select posting_date from `tabJournal Entry` where name=voucher_no)
-                end
-            ) as posting_date
-        from `tabGL Entry`
-        where
+                CASE WHEN (voucher_type='Sales Invoice')
+                    THEN (SELECT posting_date FROM `tabSales Invoice` WHERE name=voucher_no)
+                WHEN (voucher_type='Payment Entry')
+                    THEN (SELECT posting_date FROM `tabPayment Entry` WHERE name=voucher_no)
+                WHEN (voucher_type='Journal Entry')
+                    THEN (SELECT posting_date FROM `tabJournal Entry` WHERE name=voucher_no)
+                ENDend
+            ) AS posting_date
+        FROM `tabGL Entry`
+        WHERE
             docstatus < 2
-            and party_type='Customer'
-            and party=%s
-            and fiscal_year=%s
-        group by
+            AND party_type='Customer'
+            AND party=%s
+            AND fiscal_year=%s
+        GROUP BY
             voucher_type,
             voucher_no,
             against_voucher_type,
             against_voucher, 
             party
-        order by
+        ORDER BY
             posting_date, name""", (customer,fiscal_year), as_dict=1)
     current_balance = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) <= 30)
     less_sixty = sum(g.debit-g.credit for g in gl_entries if date_diff(today(), g.posting_date) > 31 and date_diff(today(), g.posting_date) <= 60)
