@@ -50,12 +50,14 @@ class CustomerStatement(Document):
                     g.cc_emails = ','.join(str(r) for v in emails for r in v)
 
         for d in gl_entries:
-            row = self.append('customers_table', {})
-            d.customer_name = d.party
-            d.email = d.primary_emails
-            d.cc_email = d.cc_emails
-            d.total_unpaid = fmt_money(d.debit - d.credit,2,"GBP")
-            row.update(d)
+            d.total_unpaid = fmt_money(d.debit - d.credit, 2, "GBP")
+            if d.total_unpaid != 0:
+                row = self.append('customers_table', {})
+                d.customer_name = d.party
+                d.email = d.primary_emails
+                d.cc_email = d.cc_emails
+                d.total_unpaid = fmt_money(d.debit - d.credit, 2, "GBP")
+                row.update(d)
 
 
 @frappe.whitelist()
