@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 
 frappe.ui.form.on('Customer Statement', {
-	refresh: function(frm) {
+	onload: function(frm) {
 		return frappe.call({
 			method: "get_customers",
 			doc: frm.doc,
