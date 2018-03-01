@@ -27,7 +27,9 @@ class CustomerStatement(Document):
             GROUP BY
                 party
             ORDER BY
-                party""", as_dict=1)
+                party
+            HAVING 
+                debit - credit != 0""", as_dict=1)
         primary_emails={g.party:frappe.db.sql("""SELECT email_id, first_name, last_name
                                     FROM tabContact
                                     WHERE name LIKE %s
